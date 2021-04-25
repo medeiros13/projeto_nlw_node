@@ -1,11 +1,8 @@
-import { Repository, EntityRepository } from "typeorm";
-import { Setting } from "../entities/Setting";
+import { EntityRepository, Repository } from 'typeorm';
 
-/**
- * O extends significa que a classe SettingsRepository está pegando todos os métodos da classe Repository para ela
-*/
+import { Setting } from '../entities/Setting';
+
 @EntityRepository(Setting)
 class SettingsRepository extends Repository<Setting> { }
-
 
 export { SettingsRepository };

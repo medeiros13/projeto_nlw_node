@@ -1,51 +1,52 @@
-import { getCustomRepository, Repository } from "typeorm";
-import { Setting } from "../entities/Setting";
-import { SettingsRepository } from "../repositories/SettingsRepository";
+import { getCustomRepository } from 'typeorm';
+import { Setting } from '../entities/Setting';
 
+import { SettingsRepository } from '../repositories/SettingsRepository';
 
 interface ISettingsCreate {
   chat: boolean;
   username: string;
 }
 
-/**
- * Nessa pasta services, é onde se colocam as regras de negócio da aplicação.
- * Ou seja, aqui que serão adicionadas validações e verificações.
- */
 class SettingsService {
-  private settingsRepository: Repository<Setting>;
+  private settingsRepository: SettingsRepository;
 
   constructor() {
     this.settingsRepository = getCustomRepository(SettingsRepository);
   }
 
   async create({ chat, username }: ISettingsCreate) {
-    /**
-     * Isso seria, em SQL igual a:
-     * (MySQL)
-     * select * from settings where username = "username" limit 1;
-     * (SQL Server)
-     * select top 1 * from settings where username = "username";
-     */
-    const userAlreadyExists = await this.settingsRepository.findOne({
-      username
+    const settingsAlreadyExists = await this.settingsRepository.findOne({
+      username,
     });
 
-    /**
-     * Se o usuário já existir, lança uma exceção pro controller
-     */
-    if (userAlreadyExists) {
-      throw new Error("User already exists!");
+    if (settingsAlreadyExists) {
+      throw new Error('Settings already exists.');
     }
 
-    const settings = this.settingsRepository.create({
+    const setting = this.settingsRepository.create({
       chat,
-      username
+      username,
     });
 
-    await this.settingsRepository.save(settings);
+    await this.settingsRepository.save(setting);
+
+    return setting;
+  }
+
+  async findByUsername(username: string) {
+    const settings = await this.settingsRepository.findOne({ username });
 
     return settings;
+  }
+
+  async update(username: string, chat: boolean) {
+    await this.settingsRepository
+      .createQueryBuilder()
+      .update(Setting)
+      .set({ chat })
+      .where('username = :username', { username })
+      .execute();
   }
 }
 
